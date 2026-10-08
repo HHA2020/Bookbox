@@ -1,14 +1,15 @@
 "use client";
-import { useState } from "react";
+import { use, useState } from "react";
 
 export default function BookReviewPage({ params }) {
-  const [rating, setRating] = useState(0);
+  const { id } = use(params);
+  const [rating, setRating] = useState("");
   const [notes, setNotes] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Future POST request to /api/reviews goes here
-    console.log("Submitting review:", { bookId: params.id, rating, notes });
+    console.log("Submitting review:", { bookId: id, rating, notes });
     alert("Review published!");
   };
 
