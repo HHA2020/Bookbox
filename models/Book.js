@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import "./Author.js"; // registers the model referenced by authorId
 
 const BookSchema = new mongoose.Schema(
   {

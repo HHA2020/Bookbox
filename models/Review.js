@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import "./Book.js"; // registers the models referenced by bookId/userId
+import "./Reviewer.js";
 
 // Bridge entity linking a Reviewer to a Book.
 const ReviewSchema = new mongoose.Schema(

@@ -1,155 +1,177 @@
 "use client";
-import { use, useCallback, useEffect, useState } from "react";
+
 import Link from "next/link";
-import { apiFetch } from "@/lib/apiClient";
-import { useCurrentUser } from "@/components/CurrentUser";
-import RatingSelect, { stars } from "@/components/RatingSelect";
+import { use, useEffect, useState } from "react";
+import { READER_ID_STORAGE_KEY } from "@/lib/reader-identity";
+
+async function requestJson(url, options) {
+  const response = await fetch(url, options);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data?.error?.message ?? `Request failed (${response.status})`);
+  }
+
+  return data;
+}
 
 export default function BookReviewPage({ params }) {
   const { id } = use(params);
-  const { user, userId } = useCurrentUser();
-
   const [book, setBook] = useState(null);
-  const [loadError, setLoadError] = useState(null);
-  const [reviews, setReviews] = useState([]);
-
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedReaderName, setSelectedReaderName] = useState("");
   const [rating, setRating] = useState("");
   const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState(null); // { ok: boolean, text }
-
-  const loadReviews = useCallback(
-    () => apiFetch(`/api/reviews?bookId=${id}`).then(setReviews),
-    [id]
-  );
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    apiFetch(`/api/books/${id}`)
-      .then(setBook)
-      .catch((err) => setLoadError(err.message));
-    loadReviews().catch(() => {});
-  }, [id, loadReviews]);
+    let active = true;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    async function loadPageData() {
+      setLoading(true);
+      setError("");
+      try {
+        const [bookData, reviewerData] = await Promise.all([
+          requestJson(`/api/books/${encodeURIComponent(id)}`),
+          requestJson("/api/reviewers"),
+        ]);
+        if (!active) return;
+        setBook(bookData);
+        const storedUserId = window.localStorage.getItem(READER_ID_STORAGE_KEY);
+        const selectedReader = reviewerData.find(
+          (reviewer) => String(reviewer._id) === storedUserId
+        );
+        setSelectedUserId(selectedReader ? String(selectedReader._id) : "");
+        setSelectedReaderName(selectedReader?.username ?? "");
+      } catch (err) {
+        if (active) setError(err.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    loadPageData();
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
     setSubmitting(true);
-    setMessage(null);
+    setError("");
+    setSuccess(false);
+
     try {
-      await apiFetch("/api/reviews", {
+      await requestJson("/api/reviews", {
         method: "POST",
-        body: JSON.stringify({ bookId: id, userId, rating: Number(rating), notes }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookId: id,
+          userId: selectedUserId,
+          rating: Number(rating),
+          notes,
+        }),
       });
       setRating("");
       setNotes("");
-      await loadReviews();
-      setMessage({ ok: true, text: "Review published! It's listed below and in Manage." });
+      setSuccess(true);
     } catch (err) {
-      setMessage({ ok: false, text: err.message });
+      setError(err.message);
     } finally {
       setSubmitting(false);
     }
-  };
-
-  if (loadError) {
-    return (
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-sm">
-        <h1 className="text-2xl font-bold mb-2">Book not found</h1>
-        <p className="text-gray-600 mb-4">{loadError}</p>
-        <Link href="/" className="text-blue-600 hover:underline">
-          &larr; Back to the catalogue
-        </Link>
-      </div>
-    );
   }
 
   return (
-    <div className="max-w-2xl mx-auto flex flex-col gap-6">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        {book ? (
-          <>
-            <h1 className="text-3xl font-bold mb-1">{book.title}</h1>
-            <p className="text-gray-600">
-              by {book.authorId?.name ?? "Unknown author"}
-              {book.publishedYear ? ` · ${book.publishedYear}` : ""}
-            </p>
-            {book.genre && (
-              <span className="inline-block mt-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                {book.genre}
-              </span>
-            )}
-          </>
+    <div className="mx-auto max-w-2xl rounded-lg bg-white p-6 shadow-sm">
+      <h1 className="mb-2 text-3xl font-bold">
+        {loading ? "Loading book..." : book?.title ?? "Book not found"}
+      </h1>
+      {book && (
+        <p className="mb-6 text-gray-600">
+          by {book.authorId?.name ?? "Unknown author"}
+          {book.genre ? ` · ${book.genre}` : ""}
+        </p>
+      )}
+
+      {error && (
+        <p role="alert" className="mb-4 rounded bg-red-100 p-3 text-red-800">
+          {error}
+        </p>
+      )}
+
+      {success && (
+        <div className="mb-4 rounded bg-green-100 p-3 text-green-800" role="status">
+          Review published. You can find it in{" "}
+          <Link href="/dashboard" className="font-semibold underline">
+            Reader Review
+          </Link>
+          .
+        </div>
+      )}
+
+      {!loading && book && (
+        !selectedUserId ? (
+          <p className="text-gray-600">
+            Choose your reader identity in{" "}
+            <Link href="/dashboard" className="font-semibold text-blue-600 hover:underline">
+              Profile
+            </Link>
+            {" "}before writing a review.
+          </p>
         ) : (
-          <p className="text-gray-500">Loading book…</p>
-        )}
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <p className="text-sm text-gray-600">Reviewing as {selectedReaderName}</p>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
-          <div>
-            <label htmlFor="rating" className="block font-semibold mb-1">
-              Instant Star Rating
-            </label>
-            <RatingSelect id="rating" value={rating} onChange={setRating} />
-          </div>
+            <div>
+              <label className="mb-1 block font-semibold" htmlFor="rating">
+                Rating
+              </label>
+              <select
+                id="rating"
+                value={rating}
+                onChange={(event) => setRating(event.target.value)}
+                className="w-full rounded border p-2"
+                required
+              >
+                <option value="" disabled>
+                  Select a rating...
+                </option>
+                {[5, 4, 3, 2, 1].map((value) => (
+                  <option key={value} value={value}>
+                    {value} / 5
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div>
-            <label htmlFor="notes" className="block font-semibold mb-1">
-              Reading Notes
-            </label>
-            <textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="border p-2 rounded w-full h-32"
-              placeholder="Write your review here..."
-              required
-            />
-          </div>
+            <div>
+              <label className="mb-1 block font-semibold" htmlFor="notes">
+                Review
+              </label>
+              <textarea
+                id="notes"
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                className="h-32 w-full rounded border p-2"
+                placeholder="Write your review..."
+              />
+            </div>
 
-          {message && (
-            <p className={message.ok ? "text-green-700" : "text-red-600"}>
-              {message.text}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={!userId || submitting}
-            className="bg-black text-white font-bold py-2 rounded hover:bg-gray-800 disabled:opacity-50"
-          >
-            {submitting
-              ? "Publishing…"
-              : user
-                ? `Publish Review as ${user.username}`
-                : "Publish Review"}
-          </button>
-        </form>
-      </div>
-
-      <section className="bg-white p-6 rounded-lg shadow-sm">
-        <h2 className="text-xl font-bold mb-4">Reviews ({reviews.length})</h2>
-        {reviews.length === 0 ? (
-          <p className="text-gray-500">No reviews yet. Be the first!</p>
-        ) : (
-          <ul className="flex flex-col gap-4">
-            {reviews.map((review) => (
-              <li key={review._id} className="border-b last:border-b-0 pb-4 last:pb-0">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">
-                    {review.userId?.username ?? "Deleted user"}
-                    {review.userId?._id === userId && (
-                      <span className="ml-2 text-xs text-gray-500">(you)</span>
-                    )}
-                  </span>
-                  <span className="text-sm">{stars(review.rating)}</span>
-                </div>
-                {review.notes && <p className="text-gray-700 mt-1">{review.notes}</p>}
-                <p className="text-xs text-gray-400 mt-1">
-                  {new Date(review.createdAt).toLocaleDateString()}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+            <button
+              type="submit"
+              disabled={submitting || !selectedUserId}
+              className="rounded bg-black py-2 font-bold text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting ? "Publishing..." : "Publish Review"}
+            </button>
+          </form>
+        )
+      )}
     </div>
   );
 }
