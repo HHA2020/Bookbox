@@ -45,11 +45,11 @@ Environment files such as `.env.local` are ignored by Git.
 
 BOOKBOX
 
-# Team Members
+## Team Members
 
-# Hein Htet Aung, Than Kyaw Oo, Paing Hein Soe.
+## Hein Htet Aung, Than Kyaw Oo, Paing Hein Soe.
 
-# Project Description
+## Project Description
 
 Bookbox is a book review similar to that of Letterboxd. But Instead of reviewing movies, users can upload their own books and other users can review them. When in the opening homepage, user can press 2 buttons to determine what kind of user they are. There are 2 types of users.
 
