@@ -165,7 +165,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">My Reading Diary</h1>
+      <h1 className="text-3xl font-bold mb-6">Profile</h1>
 
       <section className="mb-8 rounded-lg border bg-white p-5 shadow-sm">
         <h2 className="text-xl font-bold mb-4">Choose a reader</h2>

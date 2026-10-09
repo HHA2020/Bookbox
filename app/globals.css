@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: "Times New Roman", Times, serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.border {
+  border-width: 2px;
+  border-color: #4b5563;
+}
+
+.rounded,
+.rounded-lg {
+  border-radius: 0.75rem;
+}
+
+.border.rounded-lg {
+  padding: 0.75rem;
+}
