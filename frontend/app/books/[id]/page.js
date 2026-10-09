@@ -3,17 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { READER_ID_STORAGE_KEY } from "@/lib/reader-identity";
-
-async function requestJson(url, options) {
-  const response = await fetch(url, options);
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data?.error?.message ?? `Request failed (${response.status})`);
-  }
-
-  return data;
-}
+import { requestJson } from "@/lib/api-client";
 
 export default function BookReviewPage({ params }) {
   const { id } = use(params);
@@ -35,8 +25,8 @@ export default function BookReviewPage({ params }) {
       setError("");
       try {
         const [bookData, reviewerData] = await Promise.all([
-          requestJson(`/api/books/${encodeURIComponent(id)}`),
-          requestJson("/api/reviewers"),
+          requestJson(`/books/${encodeURIComponent(id)}`),
+          requestJson("/reviewers"),
         ]);
         if (!active) return;
         setBook(bookData);
@@ -66,7 +56,7 @@ export default function BookReviewPage({ params }) {
     setSuccess(false);
 
     try {
-      await requestJson("/api/reviews", {
+      await requestJson("/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

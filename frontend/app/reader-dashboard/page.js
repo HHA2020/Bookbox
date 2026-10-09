@@ -6,17 +6,7 @@ import {
   READER_ID_STORAGE_KEY,
   READER_NAME_STORAGE_KEY,
 } from "@/lib/reader-identity";
-
-async function requestJson(url, options) {
-  const response = await fetch(url, options);
-  const data = response.status === 204 ? null : await response.json();
-
-  if (!response.ok) {
-    throw new Error(data?.error?.message ?? `Request failed (${response.status})`);
-  }
-
-  return data;
-}
+import { requestJson } from "@/lib/api-client";
 
 export default function DashboardPage() {
   const [reviewers, setReviewers] = useState([]);
@@ -41,7 +31,7 @@ export default function DashboardPage() {
 
     async function loadReferences() {
       try {
-        const reviewerData = await requestJson("/api/reviewers");
+        const reviewerData = await requestJson("/reviewers");
 
         if (!active) return;
         setReviewers(reviewerData);
@@ -88,7 +78,7 @@ export default function DashboardPage() {
       setError("");
       try {
         const data = await requestJson(
-          `/api/reviews?userId=${encodeURIComponent(selectedUserId)}`
+          `/reviews?userId=${encodeURIComponent(selectedUserId)}`
         );
         if (active) setReviews(data);
       } catch (err) {
@@ -115,7 +105,7 @@ export default function DashboardPage() {
     setError("");
 
     try {
-      await requestJson(`/api/reviews/${editingReviewId}`, {
+      await requestJson(`/reviews/${editingReviewId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -126,7 +116,7 @@ export default function DashboardPage() {
 
       resetForm();
       const updatedReviews = await requestJson(
-        `/api/reviews?userId=${encodeURIComponent(selectedUserId)}`
+        `/reviews?userId=${encodeURIComponent(selectedUserId)}`
       );
       setReviews(updatedReviews);
     } catch (err) {
@@ -151,7 +141,7 @@ export default function DashboardPage() {
     setDeletingReviewId(reviewId);
     setError("");
     try {
-      await requestJson(`/api/reviews/${reviewId}`, { method: "DELETE" });
+      await requestJson(`/reviews/${reviewId}`, { method: "DELETE" });
       setReviews((current) =>
         current.filter((review) => String(review._id) !== reviewId)
       );
