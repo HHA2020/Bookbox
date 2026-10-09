@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies first for better layer caching
 COPY package*.json ./
-RUN npm ci
+RUN npm install --frozen-lockfile || npm install
 
 # NEXT_PUBLIC_* vars are baked into the bundle at build time.
 # Pass your server's public URL at build time, e.g.:
