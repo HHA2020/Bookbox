@@ -4,7 +4,7 @@ import "@/models/Author";
 import Book from "@/models/Book";
 import CatalogueSearch from "../catalogue-search";
 
-export default async function AuthorReadPage() {
+export default async function AuthorSearchPage() {
   await connection();
   await dbConnect();
   const books = await Book.find()
@@ -20,7 +20,7 @@ export default async function AuthorReadPage() {
 
   return (
     <div>
-      <h1 className="mb-2 text-3xl font-bold">Author Read</h1>
+      <h1 className="mb-2 text-3xl font-bold">Books</h1>
       <p className="mb-6 text-gray-600">
         Search the catalogue and read about books by every author.
       </p>

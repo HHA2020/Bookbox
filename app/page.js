@@ -17,7 +17,7 @@ export default function StartPage() {
           <p className="text-gray-600">Manage your books in the catalogue.</p>
         </Link>
         <Link
-          href="/dashboard"
+          href="/reader-dashboard"
           className="rounded-lg border bg-white p-6 shadow-sm transition hover:shadow-md"
         >
           <h2 className="mb-2 text-xl font-bold">Reader</h2>

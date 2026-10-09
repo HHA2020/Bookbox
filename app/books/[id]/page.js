@@ -107,8 +107,8 @@ export default function BookReviewPage({ params }) {
       {success && (
         <div className="mb-4 rounded bg-green-100 p-3 text-green-800" role="status">
           Review published. You can find it in{" "}
-          <Link href="/dashboard" className="font-semibold underline">
-            Reader Review
+          <Link href="/reader-dashboard" className="font-semibold underline">
+            Profile
           </Link>
           .
         </div>
@@ -118,7 +118,7 @@ export default function BookReviewPage({ params }) {
         !selectedUserId ? (
           <p className="text-gray-600">
             Choose your reader identity in{" "}
-            <Link href="/dashboard" className="font-semibold text-blue-600 hover:underline">
+            <Link href="/reader-dashboard" className="font-semibold text-blue-600 hover:underline">
               Profile
             </Link>
             {" "}before writing a review.

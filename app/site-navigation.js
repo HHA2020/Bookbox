@@ -13,7 +13,7 @@ export default function SiteNavigation() {
   const pathname = usePathname();
   const isAuthorPage = pathname.startsWith("/author-");
   const isReaderPage =
-    pathname === "/dashboard" ||
+    pathname === "/reader-dashboard" ||
     pathname === "/reader-search" ||
     pathname.startsWith("/books/");
   const [identityName, setIdentityName] = useState("");
@@ -41,20 +41,32 @@ export default function SiteNavigation() {
       <div className="flex items-center gap-4">
         {isAuthorPage && (
           <>
-            <Link href="/author-read" className="hover:underline">
+            <Link
+              href="/author-search"
+              className="rounded border px-3 py-1 hover:bg-gray-100"
+            >
               Books
             </Link>
-            <Link href="/author-dashboard" className="hover:underline">
+            <Link
+              href="/author-dashboard"
+              className="rounded border px-3 py-1 hover:bg-gray-100"
+            >
               Profile
             </Link>
           </>
         )}
         {isReaderPage && (
           <>
-            <Link href="/reader-search" className="hover:underline">
+            <Link
+              href="/reader-search"
+              className="rounded border px-3 py-1 hover:bg-gray-100"
+            >
               Book Search
             </Link>
-            <Link href="/dashboard" className="hover:underline">
+            <Link
+              href="/reader-dashboard"
+              className="rounded border px-3 py-1 hover:bg-gray-100"
+            >
               Profile
             </Link>
           </>
