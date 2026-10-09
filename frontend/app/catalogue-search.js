@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { requestJson } from "@/lib/api-client";
 
 export default function CatalogueSearch({ books, showReviewLink = true }) {
   const [search, setSearch] = useState("");
@@ -29,11 +30,9 @@ export default function CatalogueSearch({ books, showReviewLink = true }) {
     }));
 
     try {
-      const response = await fetch(`/api/reviews?bookId=${encodeURIComponent(bookId)}`);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error?.message ?? `Request failed (${response.status})`);
-      }
+      const data = await requestJson(
+        `/reviews?bookId=${encodeURIComponent(bookId)}`
+      );
       setReviewsByBook((current) => ({
         ...current,
         [bookId]: { status: "loaded", reviews: data },

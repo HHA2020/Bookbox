@@ -1,16 +1,10 @@
-import { connection } from "next/server";
-import dbConnect from "@/lib/mongodb";
-import "@/models/Author";
-import Book from "@/models/Book";
+import { requestJson } from "@/lib/api-client";
 import CatalogueSearch from "../catalogue-search";
 
+export const dynamic = "force-dynamic";
+
 export default async function AuthorSearchPage() {
-  await connection();
-  await dbConnect();
-  const books = await Book.find()
-    .populate("authorId", "name")
-    .sort({ title: 1 })
-    .lean();
+  const books = await requestJson("/books");
   const catalogueBooks = books.map((book) => ({
     id: String(book._id),
     title: book.title,
