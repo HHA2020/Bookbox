@@ -6,17 +6,7 @@ import {
   AUTHOR_NAME_STORAGE_KEY,
   IDENTITY_CHANGE_EVENT,
 } from "@/lib/reader-identity";
-
-async function requestJson(url, options) {
-  const response = await fetch(url, options);
-  const data = response.status === 204 ? null : await response.json();
-
-  if (!response.ok) {
-    throw new Error(data?.error?.message ?? `Request failed (${response.status})`);
-  }
-
-  return data;
-}
+import { requestJson } from "@/lib/api-client";
 
 export default function AuthorDashboardPage() {
   const [authors, setAuthors] = useState([]);
@@ -36,7 +26,7 @@ export default function AuthorDashboardPage() {
 
     async function loadAuthors() {
       try {
-        const data = await requestJson("/api/authors");
+        const data = await requestJson("/authors");
         if (!active) return;
         setAuthors(data);
         const storedAuthorId = window.localStorage.getItem(AUTHOR_ID_STORAGE_KEY);
@@ -76,7 +66,7 @@ export default function AuthorDashboardPage() {
       setError("");
       try {
         const data = await requestJson(
-          `/api/books?authorId=${encodeURIComponent(selectedAuthorId)}`
+          `/books?authorId=${encodeURIComponent(selectedAuthorId)}`
         );
         if (active) setBooks(data);
       } catch (err) {
@@ -107,7 +97,7 @@ export default function AuthorDashboardPage() {
 
   async function refreshBooks() {
     const data = await requestJson(
-      `/api/books?authorId=${encodeURIComponent(selectedAuthorId)}`
+      `/books?authorId=${encodeURIComponent(selectedAuthorId)}`
     );
     setBooks(data);
   }
@@ -119,7 +109,7 @@ export default function AuthorDashboardPage() {
 
     try {
       const isEditing = Boolean(editingBookId);
-      const url = isEditing ? `/api/books/${editingBookId}` : "/api/books";
+      const url = isEditing ? `/books/${editingBookId}` : "/books";
       const body = {
         title: form.title,
         genre: form.genre,
@@ -162,7 +152,7 @@ export default function AuthorDashboardPage() {
     setDeletingBookId(bookId);
     setError("");
     try {
-      await requestJson(`/api/books/${bookId}`, { method: "DELETE" });
+      await requestJson(`/books/${bookId}`, { method: "DELETE" });
       setBooks((current) =>
         current.filter((item) => String(item._id) !== bookId)
       );
