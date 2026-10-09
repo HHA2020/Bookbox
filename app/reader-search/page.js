@@ -20,7 +20,7 @@ export default async function ReaderSearchPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold">Reader Search</h1>
+      <h1 className="mb-6 text-3xl font-bold">Book Search</h1>
       <CatalogueSearch books={catalogueBooks} />
     </div>
   );
